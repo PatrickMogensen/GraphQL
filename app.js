@@ -6,6 +6,9 @@ var ftp = require('basic-ftp');
 var { graphql, buildSchema } = require('graphql');
 var { graphqlHTTP } = require('express-graphql');
 
+const port = process.env.PORT || 4000
+
+
 example()
 let db = new sqlite.Database('products.db', (err) => {
     if (err) {
@@ -81,6 +84,7 @@ var rootValue = {
 };
 
 // Run the GraphQL query '{ hello }' and print out the response
+/*
 graphql({
     schema,
     source: '{ product(id: 12) {product_name, product_id}  }',
@@ -88,6 +92,8 @@ graphql({
 }).then((response) => {
     console.log(JSON.stringify(response));
 });
+*/
+
 
 async function example() {
     const client = new ftp.Client()
@@ -114,7 +120,7 @@ app.use('/graphql', graphqlHTTP({
     graphiql: true,
 }));
 /*
-app.listen(4000);
+app.listen(port);
 console.log('Running a GraphQL API server at http://localhost:4000/graphql');
 
 */
