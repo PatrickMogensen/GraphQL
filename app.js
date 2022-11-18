@@ -1,5 +1,4 @@
 var express = require('express');
-var app = express();
 var bodyParser = require('body-parser');
 var sqlite = require('sqlite3').verbose();
 var ftp = require('basic-ftp');
@@ -121,4 +120,7 @@ app.use('/graphql', graphqlHTTP({
     rootValue: rootValue,
     graphiql: true,
 }));
+var cors = require('cors')
+app.use(cors())
+
 app.listen(port, () => console.log(`Now browse to localhost:${port}/graphql`));
