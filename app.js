@@ -15,18 +15,13 @@ let db = new sqlite.Database('products.db', (err) => {
         console.error(err.message);
     }
     console.log('Connected to the products database.');
-    db.get("SELECT * FROM artists", (err, row) => {
-        if (err) {
-            console.error(err.message);
-        }
-        console.log(row);
-    })
+
 });
 
 // Construct a schema, using GraphQL schema language
 var schema = buildSchema(`
   type Query {
-    products: [Product]
+    products(pageNumber: Int!): [Product]
     product(id: Int!): Product
   }
   type Product {
@@ -39,9 +34,9 @@ var schema = buildSchema(`
     }
 `);
 
-function getProducts () {
+function getProducts (pageNumber) {
     return new Promise((resolve, reject) => {
-        db.all("SELECT * FROM products", (err, rows) => {
+        db.all("SELECT * FROM products LIMIT 10 OFFSET 10 *  ?;  ", pageNumber, (err, rows) => {
             if (err) {
                 console.log(err + "error" );
                 reject(err);
@@ -51,6 +46,10 @@ function getProducts () {
         });
     });
 }
+
+getProducts(0).then((result) => {
+    console.log(result)
+})
 
 function getProduct(id) {
     console.log("getting product" + id);
@@ -76,7 +75,10 @@ getProduct(1).then((result) => {
 // The rootValue provides a resolver function for each API endpoint
 
 var rootValue = {
-    products:  getProducts().then((result) => {return result}),
+    products: (args) => {
+        return  getProducts(args.pageNumber).then((result) => {return result})
+    },
+
     product: (args) => {
         return getProduct(args.id).then((result) => {return result});
     }
