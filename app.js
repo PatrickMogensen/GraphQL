@@ -115,12 +115,13 @@ async function example() {
 }
 
 var app = express();
+var cors = require('cors')
+app.use(cors())
+
 app.use('/graphql', graphqlHTTP({
     schema: schema,
     rootValue: rootValue,
     graphiql: true,
 }));
-var cors = require('cors')
-app.use(cors())
 
 app.listen(port, () => console.log(`Now browse to localhost:${port}/graphql`));
