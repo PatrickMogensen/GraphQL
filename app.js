@@ -22,6 +22,7 @@ var schema = buildSchema(`
   type Query {
     products(pageNumber: Int!): [Product]
     product(id: Int!): Product
+    searchProduct(name: String!): Product
   }
   type Product {
     product_id: Int
@@ -49,6 +50,21 @@ function getProducts (pageNumber) {
 getProducts(0).then((result) => {
     console.log(result)
 })
+
+function getProductByName (name) {
+    console.log("getting product" + name);
+    let pattern = "%" + name + "%";
+    return new Promise((resolve, reject) => {
+        db.get("SELECT * FROM products WHERE product_name like ?", [pattern], (err, row) => {
+            if (err) {
+                console.log(err + "error" );
+                reject(err);
+            }
+            console.log("resolving")
+            resolve(row);
+        });
+    });
+}
 
 function getProduct(id) {
     console.log("getting product" + id);
@@ -80,6 +96,10 @@ var rootValue = {
 
     product: (args) => {
         return getProduct(args.id).then((result) => {return result});
+    },
+
+    searchProduct: (args) => {
+        return getProductByName(args.name).then((result) => {return result});
     }
 
 };
