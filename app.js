@@ -7,8 +7,13 @@ var { graphqlHTTP } = require('express-graphql');
 
 const port = process.env.PORT || 4000
 
+var app = express();
+var cors = require('cors')
+app.use(cors())
 
-example()
+
+
+
 let db = new sqlite.Database('products.db', (err) => {
     if (err) {
         console.error(err.message);
@@ -25,14 +30,19 @@ var schema = buildSchema(`
     searchProduct(name: String!): Product
   }
   type Product {
-    product_id: Int
+    id: String
     product_name: String
-    product_subtitle: String
-    product_price: String
-    product_category: String
-    product_picture_url: String
+    product_sub_title: String
+    product_description: String
+    main_category: String
+    sub_category: String
+    price: String
+    link: String
+    overall_rating: String
     }
 `);
+
+
 
 function getProducts (pageNumber) {
     return new Promise((resolve, reject) => {
@@ -69,7 +79,7 @@ function getProductByName (name) {
 function getProduct(id) {
     console.log("getting product" + id);
     return new Promise((resolve, reject) => {
-        db.get("SELECT * FROM products WHERE product_id = ?", [id], (err, row) => {
+        db.get("SELECT * FROM products WHERE id = ?", [id], (err, row) => {
             if (err) {
                 console.log(err + "error" );
                 reject(err);
@@ -104,6 +114,12 @@ var rootValue = {
 
 };
 
+app.use('/graphql', graphqlHTTP({
+    schema: schema,
+    rootValue: rootValue,
+    graphiql: true,
+}));
+
 // Run the GraphQL query '{ hello }' and print out the response
 /*
 graphql({
@@ -116,7 +132,7 @@ graphql({
 */
 
 
-async function example() {
+async function updateDatabase() {
     const client = new ftp.Client()
     client.ftp.verbose = true
     try {
@@ -126,22 +142,25 @@ async function example() {
             password: "FTWFTP2022!!",
             secure: false
         })
-        await client.downloadTo("products.db" , "files/products1.db")
+        await client.downloadTo("products.db" , "files/products.db")
     }
     catch(err) {
         console.log(err)
     }
     client.close()
 }
+    app.post('/update', function (req, res) {
+        updateDatabase().then(
+            db = new sqlite.Database('products.db', (err) => {
+                if (err) {
+                    console.error(err.message);
+                }
+                console.log('Connected to the updated products database.');
+                res.send("updated database on graphql server")
+            })
+        )
+    })
 
-var app = express();
-var cors = require('cors')
-app.use(cors())
 
-app.use('/graphql', graphqlHTTP({
-    schema: schema,
-    rootValue: rootValue,
-    graphiql: true,
-}));
 
 app.listen(port, () => console.log(`Now browse to localhost:${port}/graphql`));
