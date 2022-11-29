@@ -26,7 +26,7 @@ let db = new sqlite.Database('products.db', (err) => {
 var schema = buildSchema(`
   type Query {
     products(pageNumber: Int!): [Product]
-    product(id: Int!): Product
+    product(id: String!): Product
     searchProduct(name: String!): Product
   }
   type Product {
