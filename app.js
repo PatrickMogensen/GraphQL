@@ -27,7 +27,7 @@ var schema = buildSchema(`
   type Query {
     products(pageNumber: Int!): [Product]
     product(id: String!): Product
-    searchProduct(name: String!): Product
+    searchProduct(name: String!): [Product]
   }
   type Product {
     id: String
@@ -65,7 +65,8 @@ function getProductByName (name) {
     console.log("getting product" + name);
     let pattern = "%" + name + "%";
     return new Promise((resolve, reject) => {
-        db.get("SELECT * FROM products WHERE product_name like ?", [pattern], (err, row) => {
+        db.all("SELECT * FROM products WHERE product_name like ?", [pattern], (err, row) => {
+            console.log("row+ " + JSON.stringify(row))
             if (err) {
                 console.log(err + "error" );
                 reject(err);
