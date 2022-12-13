@@ -1,8 +1,10 @@
+
 const express = require('express')
 const sqlite = require('sqlite3').verbose()
 const ftp = require('basic-ftp')
 const { buildSchema } = require('graphql')
 const { graphqlHTTP } = require('express-graphql')
+require('dotenv').config()
 const port = process.env.PORT || 4000
 const app = express()
 const cors = require('cors')
@@ -154,10 +156,10 @@ async function updateDatabase () {
     client.ftp.verbose = true
     try {
         await client.access({
-            host: process.env.host,
-            user: process.env.host,
-            password: process.env.host,
-            secure: process.env.secure
+            host: process.env.HOST,
+            user: process.env.USER,
+            password: process.env.PASSWORD,
+            secure: process.env.SECURE
         })
         await client.downloadTo('products.db', 'files/products.db')
     } catch (err) {
