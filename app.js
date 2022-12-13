@@ -1,29 +1,22 @@
-var express = require('express');
-var bodyParser = require('body-parser');
-var sqlite = require('sqlite3').verbose();
-var ftp = require('basic-ftp');
-var { graphql, buildSchema } = require('graphql');
-var { graphqlHTTP } = require('express-graphql');
-
+const express = require('express')
+const sqlite = require('sqlite3').verbose()
+const ftp = require('basic-ftp')
+const { buildSchema } = require('graphql')
+const { graphqlHTTP } = require('express-graphql')
 const port = process.env.PORT || 4000
-
-var app = express();
-var cors = require('cors')
+const app = express()
+const cors = require('cors')
 app.use(cors())
-
-
-
 
 let db = new sqlite.Database('products.db', (err) => {
     if (err) {
-        console.error(err.message);
+        console.error(err.message)
     }
-    console.log('Connected to the products database.');
-
-});
+    console.log('Connected to the products database.')
+})
 
 // Construct a schema, using GraphQL schema language
-var schema = buildSchema(`
+const schema = buildSchema(`
   type Query {
     products(pageNumber: Int!): [Product]
     product(id: String!): Product
@@ -53,164 +46,135 @@ var schema = buildSchema(`
     alt_text: String
     additional_info: String
     }
-`);
-
-
+`)
 
 function getProducts (pageNumber) {
     return new Promise((resolve, reject) => {
-        db.all("SELECT * FROM products LIMIT 10 OFFSET 10 *  ?;  ", pageNumber, (err, rows) => {
+        db.all('SELECT * FROM products LIMIT 10 OFFSET 10 *  ?;  ', pageNumber, (err, rows) => {
             if (err) {
-                console.log(err + "error" );
-                reject(err);
+                console.log(err + 'error')
+                reject(err)
             }
-            console.log("resolving")
-            resolve(rows);
-        });
-    });
+            console.log('resolving')
+            resolve(rows)
+        })
+    })
 }
 
 function getProductAdditionalInfo (productId) {
-    console.log("getting product" + productId);
+    console.log('getting product' + productId)
     return new Promise((resolve, reject) => {
-        db.all("SELECT * FROM products_additional_info WHERE product_id = ? ", [productId], (err, rows) => {
+        db.all('SELECT * FROM products_additional_info WHERE product_id = ? ', [productId], (err, rows) => {
             if (err) {
-                console.log(err + "error" );
-                reject(err);
+                console.log(err + 'error')
+                reject(err)
             }
-            console.log("resolving")
-            resolve(rows);
-        });
-    });
+            console.log('resolving')
+            resolve(rows)
+        })
+    })
 }
 
 function getProductImages (productId) {
-    console.log("getting product" + productId);
+    console.log('getting product' + productId)
     return new Promise((resolve, reject) => {
-        db.all("SELECT * FROM product_images WHERE product_id = ? ", [productId], (err, rows) => {
+        db.all('SELECT * FROM product_images WHERE product_id = ? ', [productId], (err, rows) => {
             if (err) {
-                console.log(err + "error" );
-                reject(err);
+                console.log(err + 'error')
+                reject(err)
             }
-            console.log("resolving")
-            resolve(rows);
-        });
-    });
+            console.log('resolving')
+            resolve(rows)
+        })
+    })
 }
-
-getProducts(0).then((result) => {
-    console.log(result)
-})
 
 function getProductByName (name) {
-    console.log("getting product" + name);
-    let pattern = "%" + name + "%";
+    console.log('getting product' + name)
+    const pattern = '%' + name + '%'
     return new Promise((resolve, reject) => {
-        db.all("SELECT * FROM products WHERE product_name like ? ", [pattern], (err, row) => {
-            console.log("row+ " + JSON.stringify(row))
+        db.all('SELECT * FROM products WHERE product_name like ? ', [pattern], (err, row) => {
             if (err) {
-                console.log(err + "error" );
-                reject(err);
+                console.log(err + 'error')
+                reject(err)
             }
-            console.log("resolving")
-            resolve(row);
-        });
-    });
+            console.log('resolving')
+            resolve(row)
+        })
+    })
 }
 
-function getProduct(id) {
-    console.log("getting product" + id);
+function getProduct (id) {
+    console.log('getting product' + id)
     return new Promise((resolve, reject) => {
-        db.get("SELECT * FROM products WHERE id = ?", [id], (err, row) => {
+        db.get('SELECT * FROM products WHERE id = ?', [id], (err, row) => {
             if (err) {
-                console.log(err + "error" );
-                reject(err);
+                console.log(err + 'error')
+                reject(err)
             }
-            console.log("resolving")
-            resolve(row);
-        });
-    });
+            console.log('resolving')
+            resolve(row)
+        })
+    })
 }
-
-getProduct(1).then((result) => {
-    //console.log(result);
-
-})
-
 
 
 // The rootValue provides a resolver function for each API endpoint
-
-var rootValue = {
+const rootValue = {
     products: (args) => {
-        return  getProducts(args.pageNumber).then((result) => {return result})
+        return getProducts(args.pageNumber).then((result) => { return result })
     },
 
     product: (args) => {
-        return getProduct(args.id).then((result) => {return result});
+        return getProduct(args.id).then((result) => { return result })
     },
 
     searchProduct: (args) => {
-        return getProductByName(args.name).then((result) => {return result});
+        return getProductByName(args.name).then((result) => { return result })
     },
 
     productAdditionalInfo: (args) => {
-        return getProductAdditionalInfo(args.productId).then((result) => {return result});
+        return getProductAdditionalInfo(args.productId).then((result) => { return result })
     },
 
     productImages: (args) => {
-        return getProductImages(args.productId).then((result) => {return result});
+        return getProductImages(args.productId).then((result) => { return result })
     }
 
-};
+}
 
 app.use('/graphql', graphqlHTTP({
-    schema: schema,
-    rootValue: rootValue,
-    graphiql: true,
-}));
-
-// Run the GraphQL query '{ hello }' and print out the response
-/*
-graphql({
     schema,
-    source: '{ product(id: 12) {product_name, product_id}  }',
-    rootValue
-}).then((response) => {
-    console.log(JSON.stringify(response));
-});
-*/
+    rootValue,
+    graphiql: true
+}))
 
-
-async function updateDatabase() {
+async function updateDatabase () {
     const client = new ftp.Client()
     client.ftp.verbose = true
     try {
         await client.access({
-            host: "172.104.159.213",
-            user: "ftpuser",
-            password: "FTWFTP2022!!",
+            host: '172.104.159.213',
+            user: 'ftpuser',
+            password: 'FTWFTP2022!!',
             secure: false
         })
-        await client.downloadTo("products.db" , "files/products.db")
-    }
-    catch(err) {
+        await client.downloadTo('products.db', 'files/products.db')
+    } catch (err) {
         console.log(err)
     }
     client.close()
 }
-    app.post('/update', function (req, res) {
-        updateDatabase().then(
-            db = new sqlite.Database('products.db', (err) => {
-                if (err) {
-                    console.error(err.message);
-                }
-                console.log('Connected to the updated products database.');
-                res.send("updated database on graphql server")
-            })
-        )
-    })
+app.post('/update', function (req, res) {
+    updateDatabase().then(
+        db = new sqlite.Database('products.db', (err) => {
+            if (err) {
+                console.error(err.message)
+            }
+            console.log('Connected to the updated products database.')
+            res.send('updated database on graphql server')
+        })
+    )
+})
 
-
-
-app.listen(port, () => console.log(`Now browse to localhost:${port}/graphql`));
+app.listen(port, () => console.log(`Now browse to localhost:${port}/graphql`))
