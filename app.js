@@ -154,10 +154,10 @@ async function updateDatabase () {
     client.ftp.verbose = true
     try {
         await client.access({
-            host: '172.104.159.213',
-            user: 'ftpuser',
-            password: 'FTWFTP2022!!',
-            secure: false
+            host: process.env.host,
+            user: process.env.host,
+            password: process.env.host,
+            secure: process.env.secure
         })
         await client.downloadTo('products.db', 'files/products.db')
     } catch (err) {
