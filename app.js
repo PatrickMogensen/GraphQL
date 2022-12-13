@@ -156,10 +156,10 @@ async function updateDatabase () {
     client.ftp.verbose = true
     try {
         await client.access({
-            host: process.env.HOST,
-            user: process.env.USER,
-            password: process.env.PASSWORD,
-            secure: process.env.SECURE
+            host: process.env.FTPHOST,
+            user: process.env.FTPUSER,
+            password: process.env.FTPPASSWORD,
+            secure: process.env.FTPSECURE
         })
         await client.downloadTo('products.db', 'files/products.db')
     } catch (err) {
@@ -172,9 +172,10 @@ app.post('/update', function (req, res) {
         db = new sqlite.Database('products.db', (err) => {
             if (err) {
                 console.error(err.message)
+            }else {
+                console.log('Connected to the updated products database.')
+                res.send('updated database on graphql server')
             }
-            console.log('Connected to the updated products database.')
-            res.send('updated database on graphql server')
         })
     )
 })
